@@ -1,0 +1,257 @@
+
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Schwarzschild Black Hole</title>
+<link type="text/css" href="resources/webgl-tutorials.css" rel="stylesheet" />
+<script type="text/javascript" src="resources/webgl-utils.js"></script>
+<script>
+
+var gl;
+var neheTexture;
+ 
+window.onload = main;
+
+function main() {
+  // Get A WebGL context
+  var canvas = document.getElementById("canvas");
+
+
+
+  gl = getWebGLContext(canvas);
+  if (!gl) {
+    return;
+  }
+
+  initTexture();
+
+  // bind textures??
+  
+  
+
+
+  // setup GLSL program
+  vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
+  fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
+  program = createProgram(gl, [vertexShader, fragmentShader]);
+  gl.useProgram(program);
+
+ 
+
+  // look up where the vertex data needs to go.
+  var positionLocation = gl.getAttribLocation(program, "a_position");
+
+  var timeUniform = gl.getUniformLocation(program, "time"); // Getting location
+  var resUniform = gl.getUniformLocation(program, "resolution");
+
+
+  // Create a buffer and put a single clipspace rectangle in
+  // it (2 triangles)
+  var buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1.0, -1.0,
+     1.0, -1.0,
+    -1.0,  1.0,
+    -1.0,  1.0,
+     1.0, -1.0,
+     1.0,  1.0]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(positionLocation);
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+
+  // bbbbbind textures????
+  var u_defLocation = gl.getUniformLocation(program, "defSampler");
+  var u_bgLocation = gl.getUniformLocation(program, "bgSampler");
+
+  gl.uniform1i(u_defLocation,2);
+  gl.uniform1i(u_bgLocation,3);
+
+
+ 
+
+
+  var timec = 0.0;
+  setInterval(function () {
+
+  //canvas.width = window.innerWidth;
+  //canvas.height = window.innerHeight;
+
+
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, neheTexture);
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, bgTexture);
+
+
+
+  gl.uniform1f(timeUniform, timec ); 
+  gl.uniform2f(resUniform, canvas.width, canvas.height);
+
+  // draw
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  
+
+  timec += 1.0;
+  },10);
+}
+
+ function initTexture() {
+    neheTexture = gl.createTexture();
+    neheTexture.image = new Image();
+    neheTexture.image.onload = function() {
+      handleLoadedTexture(neheTexture)
+    }
+
+    neheTexture.image.src = "deflections_tex.png";
+
+
+    bgTexture = gl.createTexture();
+    bgTexture.image = new Image();
+    bgTexture.image.onload = function() {
+      handleLoadedTexture(bgTexture)
+    }
+
+    bgTexture.image.src = "tex/bg1024.png";
+
+  }
+
+
+
+  function handleLoadedTexture(texture) {
+	  window.console.log("handleLoadedTexture " + texture.image.src);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+  }
+
+</script>
+<!-- vertex shader -->
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+void main() {
+   gl_Position = vec4(a_position, 0, 1);
+}
+</script>
+<!-- fragment shader -->
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+#define M_PI 3.1415926535897932384626433832795
+
+
+uniform sampler2D defSampler;
+uniform sampler2D bgSampler;
+
+uniform float time;
+uniform vec2 resolution;
+
+const float tanfov = 4.;
+
+vec3 rotate(const vec3 v, float theta, const vec3 axis) {
+	float cosTheta = cos(theta);
+	return  v * cosTheta + cross(axis, v) * sin(theta) + axis * dot(v, axis) * (1.0 - cosTheta);
+}
+
+vec4 stripes(vec3 view, float horizonflag) { //argument must be normalized
+	
+	return vec4(horizonflag * step(fract(5.*atan(view.z,view.x)),.8) * step(fract(5.*acos(view.y)),.8) * vec3(1.,-view.y,view.y), 1.) ;
+}
+
+
+vec4 starfield(vec3 view, float horizonflag) {
+	float latitude = acos(view.y)/M_PI;
+	float longitude = atan(view.z,view.x)/(2.0*M_PI);
+
+	return min(
+		texture2D( bgSampler, vec2(longitude,latitude)),
+		vec4(horizonflag*vec3(1.,1.,1.),1.)
+		);
+}
+
+
+const float textureSize = 512.0; //size of the texture
+const float texelSize = 1.0 / textureSize; //size of one texel 
+
+vec4 texture2DInterp( sampler2D textureSampler, vec2 uv )
+{
+    // in vertex shaders you should use texture2DLod instead of texture2D
+    vec4 tl = texture2D(textureSampler, uv);
+    vec4 tr = texture2D(textureSampler, uv + vec2(texelSize, 0));
+    vec4 bl = texture2D(textureSampler, uv + vec2(0, texelSize));
+    vec4 br = texture2D(textureSampler, uv + vec2(texelSize , texelSize));
+    vec2 f = fract( uv.xy * textureSize ); // get the decimal part
+    vec4 tA = mix( tl, tr, f.x ); // will interpolate the red dot in the image
+    vec4 tB = mix( bl, br, f.x ); // will interpolate the blue dot in the image
+    //return mix( tA, tB, f.y ); // will interpolate the green dot in the image
+    float st = smoothstep(0.,1.,f.y);
+    return tA*(1.0-st) + st*tB;
+}
+
+void main() {
+
+
+
+    //float R = 9.0*iMouse.y/iResolution.y + 1.0;
+    float R = 7.0+2.9 * sin(time*0.0031);
+
+    //get screen coords	
+    vec2 uvscr = gl_FragCoord.xy / resolution;
+    vec2 uv = (uvscr - 0.5) * vec2(1.,resolution.y/resolution.x);
+    
+    uv *= tanfov;
+	
+
+    vec3 uv3 = normalize( vec3(uv, -1.0));
+
+    float theta = acos(dot(uv3,vec3(0,0,-1)));
+    
+    float dphi = 2./(R*sin(theta)); 
+	//small-angle approximation
+    float Phi_sa =  M_PI - (theta - dphi);
+
+    vec2 params = vec2( (R-1.0)/9.0,  1. - theta /M_PI ); 
+
+    vec4 distcolor = texture2D(defSampler,params);
+
+				// VVV why we should have a .98 here will forever be a mistery
+    float Phi_ba =  2.* M_PI  * (0.98*distcolor.r+0.1*(distcolor.g));
+    
+
+    float Phi = Phi_ba; //(1.-step(theta,1.0))*Phi_sa + (step(theta,1.0))*Phi_ba;
+
+    
+    vec3 v3 = -normalize(cross(vec3(0,0,-1),uv3));
+    
+    uv3 = rotate(vec3(0,0,R), Phi, v3);
+    
+    vec3 cubeTexCoord = uv3;
+    
+    float nothorizon =  smoothstep(0.,0.05,texture2D(defSampler,params).r);
+    
+    cubeTexCoord = rotate(cubeTexCoord, time * 0.0015, vec3(0., 1., 0.));
+	
+    //vec4 color = textureCube(iChannel0, cubeTexCoord);
+    vec4 color = starfield(normalize(cubeTexCoord), nothorizon);
+
+    gl_FragColor = color;
+    //gl_FragColor = texture2DInterp(bgSampler,(uv)*0.1);
+    //gl_FragColor = vec4(theta * vec3(1.,1.,1.),1.);
+   // gl_FragColor = vec4(Phi/(2.*M_PI) * vec3(1.,1.,1.),1.);
+
+}
+
+</script>
+</head>
+<body >
+<div style="overflow:hidden;">
+<canvas id="canvas" width="1024" height="786"  ></canvas>
+</div>
+</body>
+</html>
