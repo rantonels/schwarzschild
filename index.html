@@ -125,6 +125,8 @@ function main() {
 
   var timeUniform = gl.getUniformLocation(program, "time"); // Getting location
   var rUniform = gl.getUniformLocation(program, "R"); // Getting location
+  var betaUniform = gl.getUniformLocation(program, "beta"); // Getting location
+  var gammaUniform = gl.getUniformLocation(program, "gamma"); // Getting location
   var resUniform = gl.getUniformLocation(program, "resolution");
 
 
@@ -159,19 +161,23 @@ function main() {
   var timec = 3000*Math.random();
 
   var R = 0.0
+  var beta;
+  var gamma;
 
   setInterval(function () {
 
 	  if (clicked){	  
-		R = 1.0+8.9*cly/canvas.height;
+		R = 1.5+8.4*cly/canvas.height;
 		 }
 	  else{
 
 	 	 R = 7.0+2.9 * Math.sin(timec*0.0031);
 	   }
 
+  beta = 0.707 * 1.0 / Math.sqrt(R-1.0);
+  gamma = 1. / Math.sqrt(1.0 - beta*beta);
 
-  radiusP.innerHTML = "Distance: " + R.toFixed(2);
+  radiusP.innerHTML = "Distance: " + R.toFixed(2) + "<br>Orbital beta: " + beta.toFixed(4);
   //canvas.width = window.innerWidth;
   //canvas.height = window.innerHeight;
 
@@ -185,6 +191,8 @@ function main() {
 
   gl.uniform1f(timeUniform, timec ); 
   gl.uniform1f(rUniform, R);
+  gl.uniform1f(betaUniform, beta);
+  gl.uniform1f(gammaUniform, gamma);
   gl.uniform2f(resUniform, canvas.width, canvas.height);
 
   // draw
@@ -269,6 +277,8 @@ uniform sampler2D bgSampler;
 uniform float time;
 uniform vec2 resolution;
 uniform float R;
+uniform float beta;
+uniform float gamma;
 
 const float tanfov = 4.;
 
@@ -282,6 +292,10 @@ vec4 stripes(vec3 view, float horizonflag) { //argument must be normalized
 	return vec4(horizonflag * step(fract(5.*atan(view.z,view.x)),.8) * step(fract(5.*acos(view.y)),.8) * vec3(1.,-view.y,view.y), 1.) ;
 }
 
+vec3 aberrate(vec3 original)
+{
+	return vec3(beta * length(original) + gamma * original.x, original.yz );
+}
 
 vec4 starfield(vec3 view, float horizonflag) {
 	float latitude = acos(view.y)/M_PI;
@@ -324,7 +338,7 @@ void main() {
     uv *= tanfov;
 	
 
-    vec3 uv3 = normalize( vec3(uv, -1.0));
+    vec3 uv3 = normalize( aberrate(vec3(uv, -1.0)));
 
     float theta = acos(dot(uv3,vec3(0,0,-1)));
     
