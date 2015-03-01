@@ -6,11 +6,24 @@
 <meta charset="utf-8">
 <title>Schwarzschild Black Hole</title>
 <link type="text/css" href="resources/webgl-tutorials.css" rel="stylesheet" />
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
 <script type="text/javascript" src="resources/webgl-utils.js"></script>
 <script>
 
 var gl;
 var neheTexture;
+var bgTexture;
+var haTexture;
+
+var curtex;
 
 var clicked = 0;
 var clx;
@@ -63,6 +76,21 @@ function checkres(value)
 
 
 }
+
+function checktex(value)
+{
+	
+	if (value == "bg")
+		curtex = bgTexture;
+	else if (value == "ha")
+		curtex = haTexture;
+	else if (value == "lp")
+		curtex = lpTexture;
+	else
+		curtex = Null;
+
+}
+
 
 window.onload = main;
 
@@ -151,7 +179,7 @@ function main() {
   gl.activeTexture(gl.TEXTURE2);
   gl.bindTexture(gl.TEXTURE_2D, neheTexture);
   gl.activeTexture(gl.TEXTURE3);
-  gl.bindTexture(gl.TEXTURE_2D, bgTexture);
+  gl.bindTexture(gl.TEXTURE_2D, curtex);
 
 
 
@@ -184,6 +212,26 @@ function main() {
     }
 
     bgTexture.image.src = "tex/bg1024.png";
+
+    haTexture = gl.createTexture();
+    haTexture.image = new Image();
+    haTexture.image.onload = function() {
+      handleLoadedTexture(haTexture)
+    }
+
+    haTexture.image.src = "tex/ha1024.jpg";
+
+    lpTexture = gl.createTexture();
+    lpTexture.image = new Image();
+    lpTexture.image.onload = function() {
+      handleLoadedTexture(lpTexture)
+    }
+
+    lpTexture.image.src = "tex/lp1024.jpg";
+
+
+    curtex = bgTexture;
+
 
   }
 
@@ -320,14 +368,28 @@ void main() {
 <div style="overflow:hidden;">
 <canvas id="canvas" width="1024" height="786"  ></canvas>
 </div>
-<p>Click on canvas to set distance.</p>
-<p id="radiusP">Radius</p>
 
-<form>
-<input type="radio" name="resradio" onclick="checkres(this.value)" value="240p">240p<br>
-<input type="radio" name="resradio" onclick="checkres(this.value)" value="480p">480p<br>
-<input type="radio" name="resradio" onclick="checkres(this.value)" value="786p">786p<br>
-<br>
-</form>
+<div class="col-md-4">
+	<p>Click on canvas to set distance.</p>
+	<p id="radiusP">Radius</p>
+
+	<h4>Resolution</h4>
+	<form>
+	<input type="radio" name="resradio" onclick="checkres(this.value)" value="240p">240p<br>
+	<input type="radio" name="resradio" onclick="checkres(this.value)" value="480p">480p<br>
+	<input type="radio" name="resradio" onclick="checkres(this.value)" value="786p">786p<br>
+	<br>
+	</form>
+</div>
+<div class="col-md-4">
+	<h4>Texture</h4>
+	<form>
+	<input type="radio" name="texradio" onclick="checktex(this.value)" value="bg">Milky Way<br>
+	<input type="radio" name="texradio" onclick="checktex(this.value)" value="ha">H-alpha<br>
+	<input type="radio" name="texradio" onclick="checktex(this.value)" value="lp">This image from <a href="http://paulbourke.net/miscellaneous/littleplanet/">"Little Planet"</a><br>
+	<br>
+	</form>
+
+</div>
 </body>
 </html>
