@@ -29,6 +29,9 @@ var clicked = 0;
 var clx;
 var cly;
 
+var orbiting = 1;
+var regime = 1.0;
+
 document.addEventListener("DOMContentLoaded", initev, false);
 
 function initev()
@@ -89,6 +92,11 @@ function checktex(value)
 	else
 		curtex = Null;
 
+}
+
+function checkorb(value)
+{
+	orbiting = value;
 }
 
 
@@ -174,8 +182,16 @@ function main() {
 	 	 R = 7.0+2.9 * Math.sin(timec*0.0031);
 	   }
 
-  beta = 0.707 * 1.0 / Math.sqrt(R-1.0);
-  gamma = 1. / Math.sqrt(1.0 - beta*beta);
+  regime += 0.05 *  (orbiting - regime); 
+
+
+  var beta_orb = 0.707 * 1.0 / Math.sqrt(R-1.0);
+  var gamma_orb = 1. / Math.sqrt(1.0 - beta*beta);
+  
+  
+  beta = regime * beta_orb;
+  gamma = (1.-regime) + regime*gamma_orb;
+
 
   radiusP.innerHTML = "Distance: " + R.toFixed(2) + "<br>Orbital beta: " + beta.toFixed(4);
   //canvas.width = window.innerWidth;
@@ -198,8 +214,8 @@ function main() {
   // draw
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   
+  timec += regime;
 
-  timec += 1.0;
   },10);
 }
 
@@ -391,19 +407,25 @@ void main() {
 	<form>
 	<input type="radio" name="resradio" onclick="checkres(this.value)" value="240p">240p<br>
 	<input type="radio" name="resradio" onclick="checkres(this.value)" value="480p">480p<br>
-	<input type="radio" name="resradio" onclick="checkres(this.value)" value="786p">786p<br>
+	<input checked type="radio" name="resradio" onclick="checkres(this.value)" value="786p">786p<br>
 	<br>
 	</form>
 </div>
 <div class="col-md-4">
 	<h4>Texture</h4>
 	<form>
-	<input type="radio" name="texradio" onclick="checktex(this.value)" value="bg">Milky Way<br>
+	<input checked type="radio" name="texradio" onclick="checktex(this.value)" value="bg">Milky Way<br>
 	<input type="radio" name="texradio" onclick="checktex(this.value)" value="ha">H-alpha<br>
 	<input type="radio" name="texradio" onclick="checktex(this.value)" value="lp">This image from <a href="http://paulbourke.net/miscellaneous/littleplanet/">"Little Planet"</a><br>
 	<br>
 	</form>
 
+	<h4>Orbit</h4>
+	<form>
+	<input checked type="radio" name="orbradio" onclick="checkorb(1)">Circular orbit<br>
+	<input type="radio" name="orbradio" onclick="checkorb(0)">Hover Schwarzschild-stationary<br>
+
+	</form>
 </div>
 </body>
 </html>
