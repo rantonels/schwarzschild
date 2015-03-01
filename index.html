@@ -358,7 +358,7 @@ vec4 stripes(vec3 view, float horizonflag) { //argument must be normalized
 
 vec3 aberrate(vec3 original)
 {
-	return vec3(beta * length(original) + gamma * original.x, original.yz );
+	return vec3(-beta * length(original) + gamma * original.x, original.yz );
 }
 
 vec4 starfield(vec3 view, float horizonflag) {
