@@ -11,7 +11,59 @@
 
 var gl;
 var neheTexture;
- 
+
+var clicked = 0;
+var clx;
+var cly;
+
+document.addEventListener("DOMContentLoaded", initev, false);
+
+function initev()
+{
+var canvas = document.getElementById("canvas");
+canvas.addEventListener("mousedown", getPosition, false);
+}
+
+function getPosition(event)
+{
+var x = new Number();
+var y = new Number();
+var canvas = document.getElementById("canvas");
+
+if (event.x != undefined && event.y != undefined)
+{
+  x = event.x;
+  y = event.y;
+}
+else // Firefox method to get the position
+{
+  x = event.clientX + document.body.scrollLeft +
+      document.documentElement.scrollLeft;
+  y = event.clientY + document.body.scrollTop +
+      document.documentElement.scrollTop;
+}
+
+x -= canvas.offsetLeft;
+y -= canvas.offsetTop;
+
+clicked = 1;
+clx = x;
+cly = y;
+}
+
+function checkres(value)
+{
+	var canvas = document.getElementById("canvas");
+	if (value == "240p")
+	{canvas.width=320;canvas.height=240;}
+	else if (value == "480p")
+	{canvas.width=640;canvas.height=480;}
+	else if (value == "786p")
+	{canvas.width=1024;canvas.height=786;}
+
+
+}
+
 window.onload = main;
 
 function main() {
@@ -44,8 +96,11 @@ function main() {
   var positionLocation = gl.getAttribLocation(program, "a_position");
 
   var timeUniform = gl.getUniformLocation(program, "time"); // Getting location
+  var rUniform = gl.getUniformLocation(program, "R"); // Getting location
   var resUniform = gl.getUniformLocation(program, "resolution");
 
+
+  var radiusP = document.getElementById("radiusP");
 
   // Create a buffer and put a single clipspace rectangle in
   // it (2 triangles)
@@ -73,9 +128,22 @@ function main() {
  
 
 
-  var timec = 0.0;
+  var timec = 3000*Math.random();
+
+  var R = 0.0
+
   setInterval(function () {
 
+	  if (clicked){	  
+		R = 1.0+8.9*cly/canvas.height;
+		 }
+	  else{
+
+	 	 R = 7.0+2.9 * Math.sin(timec*0.0031);
+	   }
+
+
+  radiusP.innerHTML = "Distance: " + R.toFixed(2);
   //canvas.width = window.innerWidth;
   //canvas.height = window.innerHeight;
 
@@ -88,6 +156,7 @@ function main() {
 
 
   gl.uniform1f(timeUniform, timec ); 
+  gl.uniform1f(rUniform, R);
   gl.uniform2f(resUniform, canvas.width, canvas.height);
 
   // draw
@@ -151,6 +220,7 @@ uniform sampler2D bgSampler;
 
 uniform float time;
 uniform vec2 resolution;
+uniform float R;
 
 const float tanfov = 4.;
 
@@ -198,8 +268,6 @@ void main() {
 
 
 
-    //float R = 9.0*iMouse.y/iResolution.y + 1.0;
-    float R = 7.0+2.9 * sin(time*0.0031);
 
     //get screen coords	
     vec2 uvscr = gl_FragCoord.xy / resolution;
@@ -212,9 +280,9 @@ void main() {
 
     float theta = acos(dot(uv3,vec3(0,0,-1)));
     
-    float dphi = 2./(R*sin(theta)); 
+    //float dphi = 2./(R*sin(theta)); 
 	//small-angle approximation
-    float Phi_sa =  M_PI - (theta - dphi);
+    //float Phi_sa =  M_PI - (theta - dphi);
 
     vec2 params = vec2( (R-1.0)/9.0,  1. - theta /M_PI ); 
 
@@ -231,14 +299,13 @@ void main() {
     
     uv3 = rotate(vec3(0,0,R), Phi, v3);
     
-    vec3 cubeTexCoord = uv3;
     
-    float nothorizon =  smoothstep(0.,0.05,texture2D(defSampler,params).r);
+    float nothorizon =  smoothstep(0.,0.05,texture2D(defSampler,params).r) * (1.-step(theta,0.01));
     
-    cubeTexCoord = rotate(cubeTexCoord, time * 0.0015, vec3(0., 1., 0.));
+    uv3 = rotate(uv3, time * 0.0015, vec3(0., 1., 0.));
 	
     //vec4 color = textureCube(iChannel0, cubeTexCoord);
-    vec4 color = starfield(normalize(cubeTexCoord), nothorizon);
+    vec4 color = starfield(normalize(uv3), nothorizon);
 
     gl_FragColor = color;
     //gl_FragColor = texture2DInterp(bgSampler,(uv)*0.1);
@@ -253,5 +320,14 @@ void main() {
 <div style="overflow:hidden;">
 <canvas id="canvas" width="1024" height="786"  ></canvas>
 </div>
+<p>Click on canvas to set distance.</p>
+<p id="radiusP">Radius</p>
+
+<form>
+<input type="radio" name="resradio" onclick="checkres(this.value)" value="240p">240p<br>
+<input type="radio" name="resradio" onclick="checkres(this.value)" value="480p">480p<br>
+<input type="radio" name="resradio" onclick="checkres(this.value)" value="786p">786p<br>
+<br>
+</form>
 </body>
 </html>
