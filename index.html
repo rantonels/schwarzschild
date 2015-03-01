@@ -19,6 +19,24 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
 <script type="text/javascript" src="resources/webgl-utils.js"></script>
+
+<script>
+ 
+function fullscreen(){
+           var el = document.getElementById('canvas');
+ 
+           if(el.webkitRequestFullScreen) {
+               el.webkitRequestFullScreen();
+           }
+          else {
+             el.mozRequestFullScreen();
+          }            
+
+}
+ 
+</script>
+
+
 <script>
 
 var gl;
@@ -79,6 +97,8 @@ function checkres(value)
 	{canvas.width=640;canvas.height=480;}
 	else if (value == "786p")
 	{canvas.width=1024;canvas.height=786;}
+	else if (value =="1080p")
+	{canvas.width=1920;canvas.height=1080;}
 
 
 }
@@ -111,6 +131,8 @@ function main() {
   // Get A WebGL context
   var canvas = document.getElementById("canvas");
 
+  //canvas.width = 1024;
+  //canvas.height = 786;
 
 
   gl = getWebGLContext(canvas);
@@ -177,6 +199,16 @@ function main() {
   var R_target;	  
   var beta;
   var gamma;
+
+  if (screen.width < 786){
+			       canvas.width=640;
+			       canvas.height=480;
+	}
+  else			       
+  {
+    canvas.width = 1024;
+    canvas.height = 786;
+}
 
   setInterval(function () {
 
@@ -411,11 +443,8 @@ void main() {
 </script>
 </head>
 <body >
-<div class="container">
-	<div class="center-block">
-	<canvas id="canvas" width="1024" height="786"  ></canvas>
-	</div>
-
+<div class="row">
+	
 	<div class="col-md-3 col-sm-3 col-xs-6">
 		<p>Click on canvas to set distance.</p>
 		<p id="radiusP">Radius</p>
@@ -427,11 +456,14 @@ void main() {
 	<div class="col-md-3 col-sm-3 col-xs-6">
 		<h4>Resolution</h4>
 		<form>
-		<input type="radio" name="resradio" onclick="checkres(this.value)" value="240p">240p<br>
-		<input type="radio" name="resradio" onclick="checkres(this.value)" value="480p">480p<br>
-		<input checked type="radio" name="resradio" onclick="checkres(this.value)" value="786p">786p<br>
+		<input type="radio" name="resradio" onclick="checkres(this.value)" value="240p">320x240<br>
+		<input type="radio" name="resradio" onclick="checkres(this.value)" value="480p">640x480<br>
+		<input checked type="radio" name="resradio" onclick="checkres(this.value)" value="786p">1024x786<br>
+		<input type="radio" name="resradio" onclick="checkres(this.value)" value="1080p">1920x1080<br>
 		<br>
 		</form>
+		<button class="btn btn-default" onclick="fullscreen();"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span> Go Fullscreen</button>
+		<br>
 	</div>
 	<div class="col-md-3 col-sm-3 col-xs-6">
 		<h4>Texture</h4>
@@ -452,5 +484,12 @@ void main() {
 		</form>
 	</div>
 </div>
+<div height="30" style="display: inline-block;"></div>
+
+	<div class="row" width="1920">
+	<canvas id="canvas" width="1920" height="1080" style="margin-left: auto; margin-right: auto; display: block; padding: 0px;" ></canvas>
+	</div>
+
+
 </body>
 </html>
