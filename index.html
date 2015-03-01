@@ -6,6 +6,9 @@
 <meta charset="utf-8">
 <title>Schwarzschild Black Hole</title>
 <link type="text/css" href="resources/webgl-tutorials.css" rel="stylesheet" />
+
+<script src="http://code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 
@@ -89,6 +92,8 @@ function checktex(value)
 		curtex = haTexture;
 	else if (value == "lp")
 		curtex = lpTexture;
+	else if (value == "uv")
+		curtex = uvTexture;
 	else
 		curtex = Null;
 
@@ -195,7 +200,7 @@ function main() {
   gamma = (1.-regime) + regime*gamma_orb;
 
 
-  radiusP.innerHTML = "Distance: " + R.toFixed(2) + " S. radii<br>Orbital velocity: " + beta.toFixed(4) + " c";
+  radiusP.innerHTML = "Distance: " + R.toFixed(2) + " S. radii<br>Orbital velocity: " + beta.toFixed(2) + " c";
   //canvas.width = window.innerWidth;
   //canvas.height = window.innerHeight;
 
@@ -254,6 +259,15 @@ function main() {
     }
 
     lpTexture.image.src = "tex/lp1024.jpg";
+
+    uvTexture = gl.createTexture();
+    uvTexture.image = new Image();
+    uvTexture.image.onload = function() {
+      handleLoadedTexture(uvTexture)
+    }
+
+    uvTexture.image.src = "tex/uv1024.jpg";
+
 
 
     curtex = bgTexture;
@@ -398,13 +412,16 @@ void main() {
 </head>
 <body >
 <div class="container">
-	<div>
+	<div class="center-block">
 	<canvas id="canvas" width="1024" height="786"  ></canvas>
 	</div>
 
 	<div class="col-md-3 col-sm-3 col-xs-6">
 		<p>Click on canvas to set distance.</p>
 		<p id="radiusP">Radius</p>
+		<h4><a href="../">
+		  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Explanation
+			</a></h4>
 	</div>
 
 	<div class="col-md-3 col-sm-3 col-xs-6">
@@ -421,7 +438,8 @@ void main() {
 		<form>
 		<input checked type="radio" name="texradio" onclick="checktex(this.value)" value="bg">Milky Way<br>
 		<input type="radio" name="texradio" onclick="checktex(this.value)" value="ha">H-alpha<br>
-		<input type="radio" name="texradio" onclick="checktex(this.value)" value="lp">This image from <a href="http://paulbourke.net/miscellaneous/littleplanet/">"Little Planet"</a><br>
+		<input type="radio" name="texradio" onclick="checktex(this.value)" value="uv">lat-long grid<br>
+		<input type="radio" name="texradio" onclick="checktex(this.value)" value="lp">Image from from <a href="http://paulbourke.net/miscellaneous/littleplanet/">"Little Planet"</a><br>
 		<br>
 		</form>
 	</div>
