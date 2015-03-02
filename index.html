@@ -226,15 +226,15 @@ function main() {
   setInterval(function () {
 
 	  if (clicked){	  
-		R_target = 1.5+8.4*cly/canvas.height;
-		R += 0.05 * (R_target - R);
+		R_target = 1.55+8.35*cly/canvas.height;
+		R += 0.02 * (R_target - R);
 		 }
 	  else{
 
 	 	 R = 7.0+2.9 * Math.sin(timec*0.0031);
 	   }
 
-  regime += 0.05 *  (orbiting - regime); 
+  regime += 0.01 *  (orbiting - regime); 
 
 
   //relativity shit
