@@ -7,6 +7,8 @@ from multiprocessing import Process, Queue
 import random
 
 
+#some useful functions
+
 def w(r):
     return (1-1/r)
 
@@ -14,22 +16,34 @@ def wu(u):
     return w(1/u)
 
 
-def mUprime(u):
+def mUprime(u): 
+    # maybe this is -U'. Who knows. Just (-1)^n until the hole is
+    # black and not white.
     return -.5*(2*u - 3*u**2 )
 
 
 def func(u,t):
+
+    # since we integrate over all phis, without stopping, THEN crop
+    # the solution where it hits the EH or diverges, we don't want
+    # it to wander aimlessly. We force it to stop by erasing the derivative.
+    
     if (u[0]>1) or (u[0] < 0.0001):
         return [0,0]
     return [u[1], mUprime(u[0])]
 
 def gradient(u,t):
+    
+    #Jacobian of above
+    
     return [[0,1],[1-3*u[0] , 0]]
 
 
+# give a solution for one initial condition
+# returns pair: (array of phis, array of [u(phi), u'(phi)] pairs).
+
 def geod(r0,r0prime,options={}):
 
-    #b = r0**2/w(r0) * omega0
     u0 = [ 1/r0 , -r0prime/(r0*r0) ]
 
 
@@ -43,8 +57,6 @@ def geod(r0,r0prime,options={}):
     else:
         maxangle = 6.28
 
-
-
     phi = np.arange(0,maxangle,timestep)
 
     l = phi
@@ -52,6 +64,10 @@ def geod(r0,r0prime,options={}):
     u = odeint(func,u0,l, Dfun=gradient, printmessg=False)
     
     return (l,u)
+
+
+# solves a list of initial condition and yields
+# list of solutions in the format above.
 
 def geodqueue(q,sci,options):
     
@@ -68,14 +84,17 @@ def geodqueue(q,sci,options):
 
     q.put(out)
 
+# splits a list of initial conditions into 4 chunks
+# and solves them using all cores.
+# Initial conditions to this function must be provided
+# as a dict of the form {index:conditions}, where index
+# is an arbitrary integer.
+
 def multicore_list(sc,options ={}): # sc is a dict with indices
 
     sci = []
     for i in sc:
         sci.append( (i,sc[i]) )
-
-    #sci was populated as a list of (original id, data) tuples.
-
 
     #random.shuffle(sci) #shuffling here is not really necessary. Just adds complexity
 
@@ -110,6 +129,8 @@ def multicore_list(sc,options ={}): # sc is a dict with indices
 
     return results
 
+# computes a list of photonic paths starting at fixed r
+# and with various view angles (radius vector / view vector angle, called theta)
 
 def deflection_array(r,angles,options = {}):
     rprimes = - r * 1/np.tan(angles)
@@ -153,6 +174,9 @@ def deflection_array(r,angles,options = {}):
 
     return deflections
 
+
+# tests
+# these make nice files for gnuplot
 
 if __name__ == "__main__":
     

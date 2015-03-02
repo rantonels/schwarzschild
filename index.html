@@ -5,21 +5,23 @@
 <head>
 <meta charset="utf-8">
 <title>Schwarzschild Black Hole</title>
+
+<!-- using a couple functions from these guys
+	yes I'm a WebGL noob --!>
 <link type="text/css" href="resources/webgl-tutorials.css" rel="stylesheet" />
 
+
+<!--jQuery & Bootstrap --!>
 <script src="http://code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
-
-<!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-
-<!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
-
-<!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
+<!--WebGL Utils--!>
 <script type="text/javascript" src="resources/webgl-utils.js"></script>
 
+
+<!--Fullscreen query--!>
 <script>
  
 function fullscreen(){
@@ -37,6 +39,8 @@ function fullscreen(){
 </script>
 
 
+
+<!--The real magic--!>
 <script>
 
 var gl;
@@ -88,6 +92,9 @@ clx = x;
 cly = y;
 }
 
+
+//functions called on settings form click events
+
 function checkres(value)
 {
 	var canvas = document.getElementById("canvas");
@@ -125,14 +132,13 @@ function checkorb(value)
 }
 
 
+// MAIN FUNCTION
+
 window.onload = main;
 
 function main() {
-  // Get A WebGL context
-  var canvas = document.getElementById("canvas");
 
-  //canvas.width = 1024;
-  //canvas.height = 786;
+  var canvas = document.getElementById("canvas");
 
 
   gl = getWebGLContext(canvas);
@@ -140,22 +146,18 @@ function main() {
     return;
   }
 
+  //Textures are loaded
   initTexture();
-
-  // bind textures??
-  
   
 
-
-  // setup GLSL program
+  //Shader compilation
   vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
   fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
   program = createProgram(gl, [vertexShader, fragmentShader]);
   gl.useProgram(program);
 
  
-
-  // look up where the vertex data needs to go.
+  //Uniform location
   var positionLocation = gl.getAttribLocation(program, "a_position");
 
   var timeUniform = gl.getUniformLocation(program, "time"); // Getting location
@@ -165,10 +167,10 @@ function main() {
   var resUniform = gl.getUniformLocation(program, "resolution");
 
 
+  //Radius/velocity display ID
   var radiusP = document.getElementById("radiusP");
 
-  // Create a buffer and put a single clipspace rectangle in
-  // it (2 triangles)
+  //Geometry (just a quad)
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -181,18 +183,16 @@ function main() {
   gl.enableVertexAttribArray(positionLocation);
   gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
+  //The two uniform sampler location
+  var u_defLocation = gl.getUniformLocation(program, "defSampler"); //deflection lookup tex
+  var u_bgLocation = gl.getUniformLocation(program, "bgSampler");   //lat long sky sphere
 
-  // bbbbbind textures????
-  var u_defLocation = gl.getUniformLocation(program, "defSampler");
-  var u_bgLocation = gl.getUniformLocation(program, "bgSampler");
-
+  //binding
   gl.uniform1i(u_defLocation,2);
   gl.uniform1i(u_bgLocation,3);
 
-
- 
-
-
+  
+  //start time
   var timec = 3000*Math.random();
 
   var R = 0.0;
@@ -200,6 +200,9 @@ function main() {
   var beta;
   var gamma;
 
+
+  //canvas starts at high resolution and is only scaled down here, to fit screen
+  //this is done because things work weird otherwise
   if (screen.width < 786){
 			       canvas.width=640;
 			       canvas.height=480;
@@ -208,8 +211,10 @@ function main() {
   {
     canvas.width = 1024;
     canvas.height = 786;
-}
+  }
 
+
+  //MAIN LOOP
   setInterval(function () {
 
 	  if (clicked){	  
@@ -224,6 +229,8 @@ function main() {
   regime += 0.05 *  (orbiting - regime); 
 
 
+  //relativity shit
+
   var beta_orb = 0.707 * 1.0 / Math.sqrt(R-1.0);
   var gamma_orb = 1. / Math.sqrt(1.0 - beta*beta);
   
@@ -231,19 +238,17 @@ function main() {
   beta = regime * beta_orb;
   gamma = (1.-regime) + regime*gamma_orb;
 
-
+  //updating info div
   radiusP.innerHTML = "Distance: " + R.toFixed(2) + " S. radii<br>Orbital velocity: " + beta.toFixed(2) + " c";
-  //canvas.width = window.innerWidth;
-  //canvas.height = window.innerHeight;
 
 
+  //we must rebind textures every frame
   gl.activeTexture(gl.TEXTURE2);
   gl.bindTexture(gl.TEXTURE_2D, neheTexture);
   gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, curtex);
 
-
-
+  // updating uniforms
   gl.uniform1f(timeUniform, timec ); 
   gl.uniform1f(rUniform, R);
   gl.uniform1f(betaUniform, beta);
@@ -300,10 +305,7 @@ function main() {
 
     uvTexture.image.src = "tex/uv1024.jpg";
 
-
-
     curtex = bgTexture;
-
 
   }
 
@@ -320,6 +322,7 @@ function main() {
   }
 
 </script>
+
 <!-- vertex shader -->
 <script id="2d-vertex-shader" type="x-shader/x-vertex">
 attribute vec2 a_position;
@@ -327,12 +330,16 @@ void main() {
    gl_Position = vec4(a_position, 0, 1);
 }
 </script>
+
 <!-- fragment shader -->
 <script id="2d-fragment-shader" type="x-shader/x-fragment">
 
+//This shader is part magic, part luck
+//so it stays uncommented for now
+
 precision mediump float;
 
-#define M_PI 3.1415926535897932384626433832795
+#define M_PI 3.1415926535897932384626433832795 //not enough digits
 
 
 uniform sampler2D defSampler;
@@ -372,12 +379,11 @@ vec4 starfield(vec3 view, float horizonflag) {
 }
 
 
-const float textureSize = 512.0; //size of the texture
-const float texelSize = 1.0 / textureSize; //size of one texel 
+const float textureSize = 512.0;
+const float texelSize = 1.0 / textureSize;
 
-vec4 texture2DInterp( sampler2D textureSampler, vec2 uv )
+vec4 texture2DInterp( sampler2D textureSampler, vec2 uv ) //not actually used right now
 {
-    // in vertex shaders you should use texture2DLod instead of texture2D
     vec4 tl = texture2D(textureSampler, uv);
     vec4 tr = texture2D(textureSampler, uv + vec2(texelSize, 0));
     vec4 bl = texture2D(textureSampler, uv + vec2(0, texelSize));
@@ -391,9 +397,6 @@ vec4 texture2DInterp( sampler2D textureSampler, vec2 uv )
 }
 
 void main() {
-
-
-
 
     //get screen coords	
     vec2 uvscr = gl_FragCoord.xy / resolution;
@@ -434,9 +437,9 @@ void main() {
     vec4 color = starfield(normalize(uv3), nothorizon);
 
     gl_FragColor = color;
-    //gl_FragColor = texture2DInterp(bgSampler,(uv)*0.1);
-    //gl_FragColor = vec4(theta * vec3(1.,1.,1.),1.);
-   // gl_FragColor = vec4(Phi/(2.*M_PI) * vec3(1.,1.,1.),1.);
+    //gl_FragColor = texture2DInterp(bgSampler,(uv)*0.1);	//DEBUG: test uv
+    //gl_FragColor = vec4(theta * vec3(1.,1.,1.),1.);		//DEBUG: test theta
+   // gl_FragColor = vec4(Phi/(2.*M_PI) * vec3(1.,1.,1.),1.);	//DEBUG: test Phi
 
 }
 

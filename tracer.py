@@ -1,3 +1,7 @@
+# THIS SCRIPT IS AN EXPERIMENT
+# it's not needed for the online Schwarzschild BH visualization
+# and it's not good.
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
