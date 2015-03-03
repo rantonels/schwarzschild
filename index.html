@@ -251,7 +251,14 @@ function main() {
   lookangle += 0.01 * (targetvangle - lookangle);
 
   //updating info div
-  radiusP.innerHTML = "Distance: " + R.toFixed(2) + " S. radii<br>Orbital velocity: " + beta.toFixed(2) + " c";
+  radiusP.innerHTML = "Distance: " + R.toFixed(2) + " S. radii<br>Orbital velocity: " + beta.toFixed(2) + " c<br>Orbital &gamma;: "+gamma.toFixed(3)+"<br>";
+  if(orbiting)
+	  if (R<=3.0)
+		  radiusP.innerHTML += "<span class=\"label label-warning\">Unstable orbit</span><br><small>Inertial, but corrections needed.</small>";
+	  else
+		  radiusP.innerHTML += "<span class=\"label label-primary\">Stable orbit</span><br><small>Inertial, engines off</small>";
+  else
+	  radiusP.innerHTML += "<span class=\"label label-danger\">Hovering</span><br><small>Accelerating, engines on.</small>";
 
 
   //we must rebind textures every frame
