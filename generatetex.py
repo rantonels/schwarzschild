@@ -1,12 +1,9 @@
 import numpy as np
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-
-
 import solveode
 
 SIZE = 512
-
 plt.ion()
 
 img = np.zeros((SIZE,SIZE,3))
@@ -30,6 +27,5 @@ for y in range(SIZE):
 
     img[:,y,0] = np.clip(noteh*divs,0.,1.) 
     img[:,y,1] = np.clip(noteh*rest,0.,1.)
-
 
 plt.imsave('deflections_tex.png',img)
