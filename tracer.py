@@ -27,13 +27,13 @@ GREEN = np.array([0.,1.,0.])
 DARK_GREEN = np.array([0.,.2,0.])
 ZERO = np.array([0,0,0])
 
-print "loading bg.png..."
-img_bg = mpimg.imread('bg.png')
+print("loading ha1024.jpg...")
+img_bg = mpimg.imread('tex/ha1024.jpg')
 
 def get_bg_uv(u,v):
     try:
         return img_bg[int(v*2048),int(u*4096),:]
-    except ValueError,IndexError:
+    except ValueError and IndexError:
         return MAGENTA
 
 def normalize(x):
@@ -95,7 +95,7 @@ for i in range(w):
 origin = np.array([0,0,0])
 
 
-print "raytracing."
+print("raytracing.")
 
 
 # an array of (x,y) pixel coordinates is shuffled. We want to process pixel uniformly,
@@ -123,7 +123,7 @@ pixlist = [ (i,j) for i in range(w) for j in range(h) ]
 #
 #
 #if (checkcnt != totpix):
-#    print "WTF",checkcnt,totpix
+#    print("WTF",checkcnt,totpix)
 #    exit()
 #
 donecheck = {}
@@ -134,7 +134,7 @@ for (x,y) in pixlist:
 #for c in chunklist:
 #    ccounter += 1
 #    
-#    print (100*ccounter)/NRCHNKS, "%"   #print progress and refresh display
+#    print((100*ccounter)/NRCHNKS, "%")   #print progress and refresh display
 #    plt.imshow(img)                         #between every chunk.
 #    plt.draw()
 #
@@ -146,7 +146,7 @@ for (x,y) in pixlist:
 #    rays = {}
 
 
-print "creating rays"
+print("creating rays")
 
 #compute rays
 xfscales = np.linspace(-.5,.5,w)
@@ -164,14 +164,14 @@ for pixel in pixlist:
 
 #normalizing
 
-print "normalizing rays"
+print("normalizing rays")
 
 invnorms = 1/np.sqrt( np.einsum('ijk,ijk->ij',rays,rays))
 
 rays = np.einsum('ijk,ij->ijk',rays,invnorms)
 
 
-print "computing view angles"
+print("computing view angles")
 
 normcampos = normalize(CAMPOS)
 
@@ -179,7 +179,7 @@ mindots = -np.einsum('k,ijk->ij',CAMPOS,rays)
 
 thetarr = np.arccos(mindots)
 
-print "interpolating deflection angles"
+print("interpolating deflection angles")
 
 bigPhiArr = np.zeros((w,h))
 
@@ -187,13 +187,13 @@ for (x,y) in pixlist:
     bigPhiArr[x,y] = bigPhi(thetarr[x,y])
 
 
-print "starting rendering..."
+print("starting rendering...")
 
 pixcount = 0
 
 for pixel in pixlist:
         if (pixcount % 400 == 0):
-            print (100*pixcount)/len(pixlist) , "%"
+            print((100*pixcount)/len(pixlist) , "%")
             img = np.clip(img,0.0,1.0)
             plt.imshow(img)
             plt.draw()
@@ -247,10 +247,10 @@ for pixel in pixlist:
 
      
         if donecheck[(x,y)] == 0:
-            print "ERROR: untraced ray in postprocessing"
+            print("ERROR: untraced ray in postprocessing")
             exit()
         if donecheck[(x,y)] == 2:
-            print "ERROR: reprocessing pixel"
+            print("ERROR: reprocessing pixel")
             exit()
 
         yp = h-y-1
