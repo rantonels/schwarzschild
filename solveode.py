@@ -98,7 +98,7 @@ def multicore_list(sc,options ={}): # sc is a dict with indices
 
     #random.shuffle(sci) #shuffling here is not really necessary. Just adds complexity
 
-    l4 = len(sci)/4
+    l4 = len(sci)//4
     chunks = [
             sci[0:l4],
             sci[l4:2*l4],
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     thetas = np.arange(0.01,np.pi,0.01)
     deff = deflection_array(10.0,thetas,{'maxangle':2*np.pi})
     for i in range(len(deff)):
-        print deff[i][0], (deff[i][0] - (np.pi -  deff[i][1] ))
+        print(deff[i][0], (deff[i][0] - (np.pi -  deff[i][1] )))
     exit()
 
 
@@ -200,10 +200,10 @@ if __name__ == "__main__":
     #inc = [ [b*1000,-b*(1000**2)] for b in bs ]
     inc = { d : [10.,d] for d in dirs }
 
-    print "SOLVING"
+    print("SOLVING")
     trajs = multicore_list(inc,{'maxangle':2*6.28})
 
-    print "SAVING"
+    print("SAVING")
     for d in dirs:
         f = open('curves/infall%f'%d,'w')
         (l,u) = trajs[d]
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
 
     for d in dirs:
-        print d
+        print(d)
 
         f = open('curves/vel%f'%d,'w')
 
